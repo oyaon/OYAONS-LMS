@@ -1,0 +1,274 @@
+{
+  "title": "Library Management System Dashboard",
+  "description": "Comprehensive monitoring dashboard for the Library Management System",
+  "tags": ["library", "monitoring", "performance"],
+  "timezone": "browser",
+  "editable": true,
+  "refresh": "5s",
+  "panels": [
+    {
+      "title": "System Overview",
+      "type": "row",
+      "panels": [
+        {
+          "title": "CPU Usage",
+          "type": "gauge",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "expr": "100 - (avg by (instance) (irate(node_cpu_seconds_total{mode='idle'}[5m])) * 100)",
+              "legendFormat": "{{instance}}"
+            }
+          ],
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 70 },
+              { "color": "red", "value": 85 }
+            ]
+          }
+        },
+        {
+          "title": "Memory Usage",
+          "type": "gauge",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "expr": "100 * (1 - ((node_memory_MemAvailable_bytes or node_memory_Buffers_bytes + node_memory_Cached_bytes + node_memory_MemFree_bytes) / node_memory_MemTotal_bytes))",
+              "legendFormat": "{{instance}}"
+            }
+          ],
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 70 },
+              { "color": "red", "value": 85 }
+            ]
+          }
+        },
+        {
+          "title": "Disk Usage",
+          "type": "gauge",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "expr": "100 - ((node_filesystem_avail_bytes * 100) / node_filesystem_size_bytes)",
+              "legendFormat": "{{instance}}"
+            }
+          ],
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 70 },
+              { "color": "red", "value": 85 }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Application Performance",
+      "type": "row",
+      "panels": [
+        {
+          "title": "Request Rate",
+          "type": "graph",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "expr": "rate(http_requests_total[5m])",
+              "legendFormat": "{{method}} {{route}}"
+            }
+          ],
+          "yaxes": [
+            { "format": "reqps", "min": 0 },
+            { "format": "short", "min": 0 }
+          ]
+        },
+        {
+          "title": "Response Time",
+          "type": "graph",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "expr": "rate(http_request_duration_seconds_sum[5m]) / rate(http_request_duration_seconds_count[5m])",
+              "legendFormat": "{{method}} {{route}}"
+            }
+          ],
+          "yaxes": [
+            { "format": "s", "min": 0 },
+            { "format": "short", "min": 0 }
+          ]
+        },
+        {
+          "title": "Error Rate",
+          "type": "graph",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "expr": "rate(http_requests_total{status=~'5..'}[5m]) / rate(http_requests_total[5m])",
+              "legendFormat": "{{method}} {{route}}"
+            }
+          ],
+          "yaxes": [
+            { "format": "percentunit", "min": 0 },
+            { "format": "short", "min": 0 }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Database Metrics",
+      "type": "row",
+      "panels": [
+        {
+          "title": "Query Rate",
+          "type": "graph",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "expr": "rate(mongodb_query_total[5m])",
+              "legendFormat": "{{operation}}"
+            }
+          ],
+          "yaxes": [
+            { "format": "ops", "min": 0 },
+            { "format": "short", "min": 0 }
+          ]
+        },
+        {
+          "title": "Query Duration",
+          "type": "graph",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "expr": "rate(mongodb_query_duration_seconds_sum[5m]) / rate(mongodb_query_duration_seconds_count[5m])",
+              "legendFormat": "{{operation}}"
+            }
+          ],
+          "yaxes": [
+            { "format": "s", "min": 0 },
+            { "format": "short", "min": 0 }
+          ]
+        },
+        {
+          "title": "Cache Hit Rate",
+          "type": "graph",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "expr": "rate(redis_cache_hits_total[5m]) / (rate(redis_cache_hits_total[5m]) + rate(redis_cache_misses_total[5m]))",
+              "legendFormat": "{{cache}}"
+            }
+          ],
+          "yaxes": [
+            { "format": "percentunit", "min": 0 },
+            { "format": "short", "min": 0 }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Business Metrics",
+      "type": "row",
+      "panels": [
+        {
+          "title": "Active Users",
+          "type": "graph",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "expr": "sum(library_active_users)",
+              "legendFormat": "Active Users"
+            }
+          ],
+          "yaxes": [
+            { "format": "none", "min": 0 },
+            { "format": "short", "min": 0 }
+          ]
+        },
+        {
+          "title": "Book Operations",
+          "type": "graph",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "expr": "rate(library_book_operations_total[5m])",
+              "legendFormat": "{{operation}}"
+            }
+          ],
+          "yaxes": [
+            { "format": "ops", "min": 0 },
+            { "format": "short", "min": 0 }
+          ]
+        },
+        {
+          "title": "Loan Status",
+          "type": "piechart",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "expr": "sum(library_loans_total) by (status)",
+              "legendFormat": "{{status}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Alerts",
+      "type": "row",
+      "panels": [
+        {
+          "title": "Active Alerts",
+          "type": "alertlist",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "expr": "ALERTS{alertstate='firing'}",
+              "legendFormat": "{{alertname}}"
+            }
+          ],
+          "options": {
+            "show": "current",
+            "limit": 10,
+            "stateFilter": ["alerting", "pending"],
+            "dashboardFilter": "Library Management System"
+          }
+        }
+      ]
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "environment",
+        "type": "query",
+        "query": "label_values(up, environment)",
+        "label": "Environment"
+      },
+      {
+        "name": "instance",
+        "type": "query",
+        "query": "label_values(up{environment=~'$environment'}, instance)",
+        "label": "Instance"
+      }
+    ]
+  },
+  "annotations": {
+    "list": [
+      {
+        "name": "Deployments",
+        "datasource": "Prometheus",
+        "query": "deployment{environment=~'$environment'}",
+        "enable": true
+      },
+      {
+        "name": "Alerts",
+        "datasource": "Prometheus",
+        "query": "ALERTS{alertstate='firing'}",
+        "enable": true
+      }
+    ]
+  }
+} 

@@ -1,0 +1,35 @@
+{
+  "name": "library-management-system",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "web",
+    "backend"
+  ],
+  "scripts": {
+    "start": "npm run start:web",
+    "start:web": "cd web && npm run dev",
+    "start:backend": "cd backend && npm run dev",
+    "build": "npm run build:web && npm run build:backend",
+    "build:web": "cd web && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "test": "npm run test:web && npm run test:backend",
+    "test:web": "cd web && npm run test",
+    "test:backend": "cd backend && npm run test",
+    "validate-env": "node scripts/validate-env.js",
+    "env-manager": "node scripts/env-manager.js",
+    "env:dev": "node scripts/env-manager.js development",
+    "env:prod": "node scripts/env-manager.js production",
+    "env:test": "node scripts/env-manager.js test",
+    "setup": "npm install && npm run setup:web && npm run setup:backend",
+    "setup:web": "cd web && npm install",
+    "setup:backend": "cd backend && npm install",
+    "clean": "npm run clean:web && npm run clean:backend",
+    "clean:web": "cd web && rm -rf node_modules dist",
+    "clean:backend": "cd backend && rm -rf node_modules dist"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  }
+}
