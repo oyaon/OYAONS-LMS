@@ -4,46 +4,48 @@ const paymentSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
+    index: true
   },
   loan: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Loan',
-    required: true
+    required: true,
+    index: true
   },
   amount: {
     type: Number,
-    required: [true, 'Amount is required'],
-    min: [0, 'Amount must be positive']
+    required: true
   },
-  paymentMethod: {
+  currency: {
     type: String,
-    required: [true, 'Payment method is required'],
-    enum: ['cash', 'bkash', 'nagad', 'card', 'bank_transfer']
+    required: true,
+    default: 'BDT'
   },
   status: {
     type: String,
-    enum: ['pending', 'completed', 'failed', 'refunded'],
-    default: 'pending'
+    enum: ['pending', 'completed', 'failed', 'cancelled', 'refunded'],
+    default: 'pending',
+    required: true,
+    index: true
   },
-  transactionId: {
+  paymentGateway: {
     type: String,
-    required: [true, 'Transaction ID is required'],
-    unique: true
+    enum: ['bkash', 'nagad', 'manual', 'other'],
+    required: true
   },
-  paymentDate: {
-    type: Date,
-    default: Date.now
+  gatewayPaymentId: {
+    type: String,
+    index: true
   },
-  processedBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+  gatewayTransactionId: {
+    type: String,
+    index: true
   },
-  notes: String,
-  metadata: {
-    type: Map,
-    of: mongoose.Schema.Types.Mixed
-  }
+  gatewayResponse: {
+    type: mongoose.Schema.Types.Mixed
+  },
+  notes: String
 }, {
   timestamps: true
 });

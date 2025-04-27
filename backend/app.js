@@ -12,6 +12,7 @@ const userRoutes = require('./routes/users');
 const loanRoutes = require('./routes/loans');
 const eventRoutes = require('./routes/events');
 const paymentRoutes = require('./routes/payments');
+const reportRoutes = require('./routes/reports'); // Import report routes
 
 // Import middleware
 const { verifyToken, checkRole } = require('./middleware/auth');
@@ -51,6 +52,7 @@ app.use('/api/users', verifyToken, checkRole([ROLES.ADMIN]), userRoutes);
 app.use('/api/loans', verifyToken, loanRoutes);
 app.use('/api/events', verifyToken, eventRoutes);
 app.use('/api/payments', verifyToken, paymentRoutes);
+app.use('/api/reports', reportRoutes); // Mount report routes (protection is handled within the route file)
 
 // Error handling
 app.use(errorHandler);

@@ -1,5 +1,65 @@
 const Loan = require('../models/Loan');
+const Payment = require('../models/Payment'); // Import Payment model
+const { createBkashPayment } = require('../services/bkashService'); // Import Bkash service
 const { validationResult } = require('express-validator');
+
+// @desc    Initiate a Bkash payment for a specific loan fine
+// @route   POST /api/payments/initiate/bkash/:loanId
+// @access  Private (User owning the loan)
+exports.initiateBkashPayment = async (req, res, next) => {
+  try {
+    const { loanId } = req.params;
+    const userId = req.user.id; // From verifyToken middleware
+
+    // 1. Find the loan and validate
+    const loan = await Loan.findById(loanId);
+
+    if (!loan) {
+      return res.status(404).json({ success: false, message: 'Loan not found' });
+    }
+    if (loan.user.toString() !== userId) {
+      return res.status(403).json({ success: false, message: 'Not authorized to pay for this loan' });
+    }
+    if (loan.fine.status !== 'pending' || !loan.fine.amount || loan.fine.amount <= 0) {
+      return res.status(400).json({ success: false, message: 'No pending fine applicable for this loan' });
+    }
+
+    const amount = loan.fine.amount;
+
+    // 2. Create a pending Payment record in our DB
+    const newPayment = new Payment({
+      user: userId,
+      loan: loanId,
+      amount: amount,
+      currency: 'BDT',
+      status: 'pending',
+      paymentGateway: 'bkash',
+    });
+    await newPayment.save();
+    const ourPaymentId = newPayment._id.toString();
+
+    // 3. Call Bkash Create Payment API
+    const bkashResponse = await createBkashPayment(amount, ourPaymentId); // Use our _id as merchantInvoiceNumber
+
+    // 4. Update our Payment record with Bkash paymentID
+    newPayment.gatewayPaymentId = bkashResponse.paymentID;
+    await newPayment.save();
+
+    // 5. Send Bkash URL back to frontend
+    res.json({
+      success: true,
+      bkashURL: bkashResponse.bkashURL,
+      paymentId: ourPaymentId // Send our internal payment ID too if needed
+    });
+
+  } catch (error) {
+    // If Bkash call fails or DB save fails, pass error
+    console.error('Error initiating Bkash payment:', error);
+    // Optionally, update our Payment record status to 'failed' here
+    // await Payment.findByIdAndUpdate(ourPaymentId, { status: 'failed', gatewayResponse: { error: error.message } });
+    next(error); // Let central handler respond
+  }
+};
 
 // @desc    Get payment statistics
 // @route   GET /api/payments/stats
